@@ -276,7 +276,7 @@ Bu metni sistem prompt olarak kullan:
 
 if api_key:
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=system_instruction)
+    model = genai.GenerativeModel(model_name="gemini-2.5-flash", system_instruction=system_instruction)
 
     # --- LEVEL ATLAMA: SEKMELER (TABS) ---
     # React kodundaki o ayrı dosyaları burada sekmelere bölüyoruz
@@ -329,3 +329,4 @@ if api_key:
 
 else:
     st.error("API Key bulunamadı.")
+
