@@ -6,8 +6,8 @@ st.set_page_config(page_title="Benim PT Uygulamam", page_icon="💪")
 
 st.title("🏋️ Kişisel PT Asistanım")
 
-# API Anahtarını direkt buraya yazıyoruz
-api_key = "AIzaSyDAMKewW_2gM-HsByuss5Ev7gGu6pMtYWw"
+# Şifreyi Streamlit'in kasasından çekeceğiz
+api_key = st.secrets["google_apikey"]
 
 # --- SİSTEM TALİMATI (AI Studio'daki Promptunuz) ---
 # AI Studio'daki "System Instruction" kutusundaki her şeyi buraya yapıştırın.
@@ -318,4 +318,5 @@ if api_key:
         st.error(f"Bir hata oluştu: {e}")
 else:
     st.warning("Lütfen sol menüden Google AI Studio'dan aldığınız API Key'i girin.")
+
     st.info("API Key almak için: https://aistudio.google.com/app/apikey")
