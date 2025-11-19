@@ -2,15 +2,16 @@ import streamlit as st
 import google.generativeai as genai
 
 # --- AYARLAR ---
-st.set_page_config(page_title="Benim PT Uygulamam", page_icon="💪")
+st.set_page_config(page_title="HAS Team PT", page_icon="💪", layout="wide")
 
-st.title("🏋️ Kişisel PT Asistanım")
+# Başlık
+st.title("🏋️ HAS Team - Kişisel Koçun")
 
-# Şifreyi Streamlit'in kasasından çekeceğiz
-api_key = st.secrets["google_apikey"]
+# API Key (Secrets'tan veya direkt buraya)
+# Eğer secrets kullanıyorsanız: st.secrets["google_apikey"]
+api_key = st.secrets["google_apikey"] 
 
-# --- SİSTEM TALİMATI (AI Studio'daki Promptunuz) ---
-# AI Studio'daki "System Instruction" kutusundaki her şeyi buraya yapıştırın.
+# --- YENİ GÜÇLÜ BEYİN (Sizin Promptunuz) ---
 system_instruction = """
 Amaç:
 
@@ -274,49 +275,57 @@ Bu metni sistem prompt olarak kullan:
 """
 
 if api_key:
-    try:
-        # Gemini'yi yapılandır
-        genai.configure(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=system_instruction)
 
-        # Modeli oluştur (Sistem talimatını buraya ekliyoruz)
-        model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",  # Hızlı ve ekonomik model
-            system_instruction=system_instruction
-        )
+    # --- LEVEL ATLAMA: SEKMELER (TABS) ---
+    # React kodundaki o ayrı dosyaları burada sekmelere bölüyoruz
+    tab1, tab2, tab3, tab4 = st.tabs(["💬 Sohbet & Koçluk", "🍎 Beslenme Planı", "🏋️ Antrenman Programı", "📈 Gelişim Takibi"])
 
-        # Mesaj geçmişini başlat (Session State)
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+    # Mesaj geçmişi başlatma
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-        # Geçmiş mesajları ekrana yazdır
+    # --- TAB 1: ANA SOHBET ---
+    with tab1:
+        st.info("Hedeflerini anlat, sana özel plan yapalım.")
+        
+        # Sohbet geçmişini göster
         for message in st.session_state.messages:
             role = "user" if message["role"] == "user" else "assistant"
             with st.chat_message(role):
                 st.markdown(message["content"])
 
-        # Kullanıcıdan girdi al
-        if prompt := st.chat_input("Antrenman veya beslenme hakkında sor..."):
-            # 1. Kullanıcı mesajını göster ve kaydet
+        # Yeni mesaj girişi
+        if prompt := st.chat_input("Bugün nasıl hissediyorsun? Antrenman yaptık mı?"):
             with st.chat_message("user"):
                 st.markdown(prompt)
             st.session_state.messages.append({"role": "user", "content": prompt})
 
-            # 2. AI cevabını al
-            chat = model.start_chat(history=[
-                {"role": m["role"], "parts": [m["content"]]}
-                for m in st.session_state.messages if m["role"] in ["user", "model"]
-            ])
-
+            # Cevap al
+            chat = model.start_chat(history=[{"role": m["role"], "parts": [m["content"]]} for m in st.session_state.messages])
             response = chat.send_message(prompt)
-
-            # 3. AI cevabını göster ve kaydet
+            
             with st.chat_message("assistant"):
                 st.markdown(response.text)
             st.session_state.messages.append({"role": "model", "content": response.text})
 
-    except Exception as e:
-        st.error(f"Bir hata oluştu: {e}")
-else:
-    st.warning("Lütfen sol menüden Google AI Studio'dan aldığınız API Key'i girin.")
+    # --- TAB 2: BESLENME (Özellik) ---
+    with tab2:
+        st.header("Günlük Makro ve Kalori")
+        st.write("Burada kişiye özel beslenme tabloları oluşturabiliriz.")
+        if st.button("Örnek Beslenme Planı Oluştur"):
+            # Yapay zekaya özel komut gönderiyoruz
+            response = model.generate_content("Bana örnek bir günlük protein ağırlıklı beslenme planı (tablo formatında) hazırla.")
+            st.markdown(response.text)
 
-    st.info("API Key almak için: https://aistudio.google.com/app/apikey")
+    # --- TAB 3: ANTRENMAN (Özellik) ---
+    with tab3:
+        st.header("Haftalık Program")
+        bolge = st.selectbox("Hangi bölgeyi çalışacağız?", ["Tüm Vücut", "Göğüs & Triceps", "Sırt & Biceps", "Bacak"])
+        if st.button("Antrenmanı Yaz"):
+            response = model.generate_content(f"{bolge} için hipertrofi odaklı 4 hareketlik bir antrenman yaz.")
+            st.markdown(response.text)
+
+else:
+    st.error("API Key bulunamadı.")
